@@ -70,7 +70,7 @@ export default function Dashboard() {
       });
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetchingg dashboard data:', error);
     } finally {
       setLoading(false);
     }
