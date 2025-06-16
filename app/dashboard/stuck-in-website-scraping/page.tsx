@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { RefreshCw, ArrowLeft, Globe, ExternalLink } from 'lucide-react';
+import { RefreshCw, ArrowLeft, Globe, ExternalLink, Download, FileDown } from 'lucide-react';
 import Link from 'next/link';
+import { downloadCSV, downloadSingleRow, generateFilename, type CSVData } from '@/lib/csv-utils';
 
 interface StuckDataItem {
   link_yid: string;
@@ -52,6 +53,20 @@ export default function StuckInWebsiteScraping() {
     if (total === 0) return 'bg-green-100 text-green-800';
     if (total < 10) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
+  };
+
+  const handleBulkDownload = () => {
+    if (!data || !data.results || data.results.length === 0) {
+      alert('No data available to download');
+      return;
+    }
+    
+    const filename = generateFilename('stuck-website-scraping', data.total);
+    downloadCSV(data.results as CSVData[], filename);
+  };
+
+  const handleSingleDownload = (item: StuckDataItem) => {
+    downloadSingleRow(item as CSVData, 'stuck-website-scraping');
   };
 
   return (
@@ -101,9 +116,21 @@ export default function StuckInWebsiteScraping() {
                 <CardTitle className="text-xl font-semibold">
                   Stuck URLs Overview
                 </CardTitle>
-                <Badge className={`${getStatusColor(data?.total ?? 0)} border-0 px-4 py-2 text-lg font-bold`}>
-                  {loading ? '...' : data?.total ?? 0} Total
-                </Badge>
+                <div className="flex items-center gap-3">
+                  {data && data.results && data.results.length > 0 && (
+                    <Button
+                      onClick={handleBulkDownload}
+                      className="bg-[#00E0FF] hover:bg-[#00E0FF]/90 text-white font-semibold px-4 py-2 transition-all duration-200 hover:scale-105"
+                      size="sm"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download CSV
+                    </Button>
+                  )}
+                  <Badge className={`${getStatusColor(data?.total ?? 0)} border-0 px-4 py-2 text-lg font-bold`}>
+                    {loading ? '...' : data?.total ?? 0} Total
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -158,15 +185,26 @@ export default function StuckInWebsiteScraping() {
                               {formatDate(item.createdAt)}
                             </TableCell>
                             <TableCell>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs hover:bg-[#00E0FF]/10 hover:border-[#00E0FF] transition-all duration-200"
-                                onClick={() => window.open(item.url, '_blank')}
-                              >
-                                <ExternalLink className="mr-1 h-3 w-3" />
-                                Open
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs hover:bg-[#00E0FF]/10 hover:border-[#00E0FF] transition-all duration-200"
+                                  onClick={() => window.open(item.url, '_blank')}
+                                >
+                                  <ExternalLink className="mr-1 h-3 w-3" />
+                                  Open
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs hover:bg-[#00E0FF]/10 hover:border-[#00E0FF] transition-all duration-200"
+                                  onClick={() => handleSingleDownload(item)}
+                                >
+                                  <FileDown className="mr-1 h-3 w-3" />
+                                  CSV
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}

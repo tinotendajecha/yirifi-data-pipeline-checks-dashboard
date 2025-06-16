@@ -62,6 +62,8 @@ export default function Dashboard() {
         websiteScrapingRes.ok ? websiteScrapingRes.json() : null,
       ]);
 
+      console.log('Fetched dashboard data:', articleClassifier, generalFileParser, sourceChannelAnalysis, websiteScraping);
+
       setData({
         articleClassifier,
         generalFileParser,
