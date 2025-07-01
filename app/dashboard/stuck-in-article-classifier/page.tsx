@@ -157,12 +157,10 @@ export default function StuckInArticleClassifier() {
           <Card className="bg-white border-0 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-t-lg">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-semibold">
+                <CardTitle className="text-xl font-semibold flex items-center gap-2">
                   Stuck Documents Overview
                   {selectedCountry && (
-                    <Badge className="ml-3 bg-[#00E0FF] text-white">
-                      {formatCountryDisplay(selectedCountry)}
-                    </Badge>
+                    <Flag code={ selectedCountry } height={12} width={18}/>
                   )}
                 </CardTitle>
                 <div className="flex items-center gap-3">

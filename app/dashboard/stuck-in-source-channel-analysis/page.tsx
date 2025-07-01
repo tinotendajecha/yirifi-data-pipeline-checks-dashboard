@@ -38,6 +38,8 @@ export default function StuckInSourceChannelAnalysis() {
       const response = await fetch('/api/checks/stuck-in-source-channel-analysis');
       if (response.ok) {
         const result = await response.json();
+
+        console.log(result)
         setData(result);
         setLastUpdated(new Date());
       }
@@ -157,12 +159,10 @@ export default function StuckInSourceChannelAnalysis() {
           <Card className="bg-white border-0 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-t-lg">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-semibold">
+                <CardTitle className="text-xl font-semibold flex items-center gap-2">
                   Stuck Analysis Items Overview
                   {selectedCountry && (
-                    <Badge className="ml-3 bg-[#00E0FF] text-white">
-                      {formatCountryDisplay(selectedCountry)}
-                    </Badge>
+                    <Flag code={ selectedCountry } height={12} width={18}/>
                   )}
                 </CardTitle>
                 <div className="flex items-center gap-3">
