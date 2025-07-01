@@ -6,10 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, AlertTriangle, Database, FileText, Search, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { formatCountryDisplay } from '@/lib/country-utils';
 
 interface StuckDataItem {
   link_yid: string;
   url: string;
+  source_channel?: {
+    country_code?: string;
+  };
   createdAt: string;
 }
 
@@ -61,8 +65,6 @@ export default function Dashboard() {
         sourceChannelAnalysisRes.ok ? sourceChannelAnalysisRes.json() : null,
         websiteScrapingRes.ok ? websiteScrapingRes.json() : null,
       ]);
-
-      console.log('Fetched dashboard data:', articleClassifier, generalFileParser, sourceChannelAnalysis, websiteScraping);
 
       setData({
         articleClassifier,
@@ -206,8 +208,15 @@ export default function Dashboard() {
                           <div className="text-xs text-gray-500 truncate" title={item.url}>
                             {item.url}
                           </div>
-                          <div className="text-xs text-gray-400">
-                            {formatDate(item.createdAt)}
+                          <div className="flex items-center gap-2 mt-1">
+                            {item.source_channel?.country_code && (
+                              <Badge variant="outline" className="text-xs px-1 py-0">
+                                {formatCountryDisplay(item.source_channel.country_code)}
+                              </Badge>
+                            )}
+                            <div className="text-xs text-gray-400">
+                              {formatDate(item.createdAt)}
+                            </div>
                           </div>
                         </div>
                       ))}

@@ -2,20 +2,22 @@
 export interface CSVData {
   link_yid: string;
   url: string;
+  country_code?: string;
   createdAt: string;
 }
 
 export function convertToCSV(data: CSVData[]): string {
   if (!data || data.length === 0) {
-    return 'Link YID,URL,Created At\n';
+    return 'Link YID,URL,Country Code,Created At\n';
   }
 
-  const headers = ['Link YID', 'URL', 'Created At'];
+  const headers = ['Link YID', 'URL', 'Country Code', 'Created At'];
   const csvContent = [
     headers.join(','),
     ...data.map(row => [
       `"${row.link_yid}"`,
       `"${row.url.replace(/"/g, '""')}"`, // Escape quotes in URLs
+      `"${row.country_code || 'N/A'}"`,
       `"${new Date(row.createdAt).toLocaleString()}"`
     ].join(','))
   ].join('\n');

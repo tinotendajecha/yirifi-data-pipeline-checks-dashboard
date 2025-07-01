@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +8,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { RefreshCw, ArrowLeft, Globe, ExternalLink, Download, FileDown } from 'lucide-react';
 import Link from 'next/link';
 import { downloadCSV, downloadSingleRow, generateFilename, type CSVData } from '@/lib/csv-utils';
+import { CountryFilter } from '@/components/ui/country-filter';
+import { formatCountryDisplay } from '@/lib/country-utils';
+import Flag from 'react-world-flags';
 
 interface StuckDataItem {
   link_yid: string;
   url: string;
+  source_channel?: {
+    country_code?: string;
+  };
   createdAt: string;
 }
 
@@ -24,6 +30,7 @@ export default function StuckInWebsiteScraping() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -45,6 +52,20 @@ export default function StuckInWebsiteScraping() {
     fetchData();
   }, []);
 
+  // Filter data based on selected country
+  const filteredData = useMemo(() => {
+    if (!data || !selectedCountry) return data;
+
+    const filteredResults = data.results.filter(item =>
+      item.source_channel?.country_code === selectedCountry
+    );
+
+    return {
+      total: filteredResults.length,
+      results: filteredResults
+    };
+  }, [data, selectedCountry]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -56,18 +77,35 @@ export default function StuckInWebsiteScraping() {
   };
 
   const handleBulkDownload = () => {
-    if (!data || !data.results || data.results.length === 0) {
+    const dataToDownload = filteredData || data;
+    if (!dataToDownload || !dataToDownload.results || dataToDownload.results.length === 0) {
       alert('No data available to download');
       return;
     }
-    
-    const filename = generateFilename('stuck-website-scraping', data.total);
-    downloadCSV(data.results as CSVData[], filename);
+
+    // Transform data for CSV
+    const csvData = dataToDownload.results.map(item => ({
+      link_yid: item.link_yid,
+      url: item.url,
+      country_code: item.source_channel?.country_code || 'N/A',
+      createdAt: item.createdAt
+    }));
+
+    const filename = generateFilename('stuck-website-scraping', dataToDownload.total);
+    downloadCSV(csvData, filename);
   };
 
   const handleSingleDownload = (item: StuckDataItem) => {
-    downloadSingleRow(item as CSVData, 'stuck-website-scraping');
+    const csvData = {
+      link_yid: item.link_yid,
+      url: item.url,
+      country_code: item.source_channel?.country_code || 'N/A',
+      createdAt: item.createdAt
+    };
+    downloadSingleRow(csvData, 'stuck-website-scraping');
   };
+
+  const displayData = filteredData || data;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#3000A5] to-[#00CFFF]">
@@ -76,8 +114,8 @@ export default function StuckInWebsiteScraping() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-4">
               <Link href="/dashboard">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-200"
                 >
@@ -98,14 +136,20 @@ export default function StuckInWebsiteScraping() {
                 )}
               </div>
             </div>
-            <Button
-              onClick={fetchData}
-              disabled={loading}
-              className="bg-[#FFD700] hover:bg-[#FFD700]/90 text-[#3000A5] font-semibold px-6 py-2 transition-all duration-200 hover:scale-105"
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </Button>
+            <div className="flex items-center gap-3">
+              <CountryFilter
+                selectedCountry={selectedCountry}
+                onCountryChange={setSelectedCountry}
+              />
+              <Button
+                onClick={fetchData}
+                disabled={loading}
+                className="bg-[#FFD700] hover:bg-[#FFD700]/90 text-[#3000A5] font-semibold px-6 py-2 transition-all duration-200 hover:scale-105"
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh Data
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -115,9 +159,14 @@ export default function StuckInWebsiteScraping() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold">
                   Stuck URLs Overview
+                  {selectedCountry && (
+                    <Badge className="ml-3 bg-[#00E0FF] text-white">
+                      {formatCountryDisplay(selectedCountry)}
+                    </Badge>
+                  )}
                 </CardTitle>
                 <div className="flex items-center gap-3">
-                  {data && data.results && data.results.length > 0 && (
+                  {displayData && displayData.results && displayData.results.length > 0 && (
                     <Button
                       onClick={handleBulkDownload}
                       className="bg-[#00E0FF] hover:bg-[#00E0FF]/90 text-white font-semibold px-4 py-2 transition-all duration-200 hover:scale-105"
@@ -127,8 +176,8 @@ export default function StuckInWebsiteScraping() {
                       Download CSV
                     </Button>
                   )}
-                  <Badge className={`${getStatusColor(data?.total ?? 0)} border-0 px-4 py-2 text-lg font-bold`}>
-                    {loading ? '...' : data?.total ?? 0} Total
+                  <Badge className={`${getStatusColor(displayData?.total ?? 0)} border-0 px-4 py-2 text-lg font-bold`}>
+                    {loading ? '...' : displayData?.total ?? 0} Total
                   </Badge>
                 </div>
               </div>
@@ -140,37 +189,44 @@ export default function StuckInWebsiteScraping() {
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
                   <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
                 </div>
-              ) : !data || data.total === 0 ? (
+              ) : !displayData || displayData.total === 0 ? (
                 <div className="text-center py-12">
                   <Globe className="mx-auto h-16 w-16 text-green-500 mb-4" />
                   <h3 className="text-xl font-semibold text-green-600 mb-2">All Clear!</h3>
-                  <p className="text-gray-600">No URLs are currently stuck in the scraping process.</p>
+                  <p className="text-gray-600">
+                    {selectedCountry
+                      ? `No URLs are currently stuck in the scraping process for ${formatCountryDisplay(selectedCountry)}.`
+                      : 'No URLs are currently stuck in the scraping process.'
+                    }
+                  </p>
                 </div>
               ) : (
                 <div>
                   <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-l-4 border-orange-400">
                     <h3 className="font-semibold text-orange-800 mb-1">
-                      ⚠️ {data.total} URLs require attention
+                      ⚠️ {displayData.total} URLs require attention
+                      {selectedCountry && ` in ${formatCountryDisplay(selectedCountry)}`}
                     </h3>
                     <p className="text-orange-700 text-sm">
                       These URLs have been stuck in the scraping stage and may need manual review or processing.
                     </p>
                   </div>
-                  
+
                   <div className="rounded-lg border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
                           <TableHead className="font-semibold text-gray-700">Link YID</TableHead>
                           <TableHead className="font-semibold text-gray-700">URL</TableHead>
+                          <TableHead className="font-semibold text-gray-700">Country</TableHead>
                           <TableHead className="font-semibold text-gray-700">Created At</TableHead>
                           <TableHead className="font-semibold text-gray-700">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {data.results.map((item, index) => (
-                          <TableRow 
-                            key={index} 
+                        {displayData.results.map((item, index) => (
+                          <TableRow
+                            key={index}
                             className="hover:bg-[#00E0FF]/5 transition-colors duration-200"
                           >
                             <TableCell className="font-mono text-sm text-gray-700">
@@ -180,6 +236,16 @@ export default function StuckInWebsiteScraping() {
                               <div className="truncate text-sm text-gray-600" title={item.url}>
                                 {item.url}
                               </div>
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {item.source_channel?.country_code ? (
+                                <div className='flex gap-1 items-center justify-center'>
+                                  <span>{item.source_channel.country_code}</span>
+                                  <Flag code={item.source_channel.country_code} height={12} width={18} />
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-xs">N/A</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-sm text-gray-500">
                               {formatDate(item.createdAt)}
@@ -211,9 +277,9 @@ export default function StuckInWebsiteScraping() {
                       </TableBody>
                     </Table>
                   </div>
-                  
-                  {data.results.length >= 100 && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg text-center text-sm text-blue-700">  
+
+                  {displayData.results.length >= 100 && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg text-center text-sm text-blue-700">
                       Showing first 100 results. There may be more stuck URLs.
                     </div>
                   )}
