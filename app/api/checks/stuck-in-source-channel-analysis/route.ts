@@ -25,6 +25,7 @@ export async function GET(){
         const results = await db?.collection('links').find(query).project({
             link_yid: 1,
             url: 1,
+            "source_channel.country_code": 1,
             createdAt:1,
         }).limit(100).toArray()
 

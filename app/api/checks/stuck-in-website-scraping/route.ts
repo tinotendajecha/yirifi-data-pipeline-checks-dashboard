@@ -25,6 +25,7 @@ export async function GET() {
       .project({
         link_yid: 1,
         url: 1,
+        "source_channel.country_code": 1,
         createdAt: 1
       })
       .limit(100)

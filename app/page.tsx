@@ -1,275 +1,104 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { RefreshCw, AlertTriangle, Database, FileText, Search, Globe } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Database, FileText, Search, Globe, ArrowRight, Shield, Zap, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
-interface StuckDataItem {
-  link_yid: string;
-  url: string;
-  createdAt: string;
-}
-
-interface ApiResponse {
-  total: number;
-  results: StuckDataItem[];
-}
-
-interface DashboardData {
-  articleClassifier: ApiResponse | null;
-  generalFileParser: ApiResponse | null;
-  sourceChannelAnalysis: ApiResponse | null;
-  websiteScraping: ApiResponse | null;
-}
-
-export default function Dashboard() {
-  const [data, setData] = useState<DashboardData>({
-    articleClassifier: null,
-    generalFileParser: null,
-    sourceChannelAnalysis: null,
-    websiteScraping: null,
-  });
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [
-        articleClassifierRes,
-        generalFileParserRes,
-        sourceChannelAnalysisRes,
-        websiteScrapingRes,
-      ] = await Promise.all([
-        fetch('/api/checks/stuck-in-article-classifier'),
-        fetch('/api/checks/stuck-in-general-file-parser'),
-        fetch('/api/checks/stuck-in-source-channel-analysis'),
-        fetch('/api/checks/stuck-in-website-scraping'),
-      ]);
-
-      const [
-        articleClassifier,
-        generalFileParser,
-        sourceChannelAnalysis,
-        websiteScraping,
-      ] = await Promise.all([
-        articleClassifierRes.ok ? articleClassifierRes.json() : null,
-        generalFileParserRes.ok ? generalFileParserRes.json() : null,
-        sourceChannelAnalysisRes.ok ? sourceChannelAnalysisRes.json() : null,
-        websiteScrapingRes.ok ? websiteScrapingRes.json() : null,
-      ]);
-
-      console.log('Fetched dashboard data:', articleClassifier, generalFileParser, sourceChannelAnalysis, websiteScraping);
-
-      setData({
-        articleClassifier,
-        generalFileParser,
-        sourceChannelAnalysis,
-        websiteScraping,
-      });
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error fetchingg dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  const getStatusColor = (total: number) => {
-    if (total === 0) return 'bg-green-100 text-green-800';
-    if (total < 10) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
-  };
-
-  const cards = [
+export default function LandingPage() {
+  const features = [
     {
-      title: 'Article Classifier',
-      description: 'Documents stuck in article classification',
-      icon: FileText,
-      data: data.articleClassifier,
-      href: '/dashboard/stuck-in-article-classifier',
+      icon: Database,
+      title: 'Real-time Monitoring',
+      description: 'Monitor your data pipeline in real-time with instant updates and alerts for stuck documents.',
       color: 'from-purple-500 to-blue-500',
     },
     {
-      title: 'General File Parser',
-      description: 'Files stuck in parsing process',
-      icon: Database,
-      data: data.generalFileParser,
-      href: '/dashboard/stuck-in-general-file-parser',
+      icon: FileText,
+      title: 'Article Classification',
+      description: 'Track documents stuck in the article classification process with detailed insights.',
       color: 'from-blue-500 to-cyan-500',
     },
     {
-      title: 'Source Channel Analysis',
-      description: 'Items stuck in channel analysis',
       icon: Search,
-      data: data.sourceChannelAnalysis,
-      href: '/dashboard/stuck-in-source-channel-analysis',
+      title: 'Channel Analysis',
+      description: 'Monitor source channel analysis bottlenecks and optimize your data flow.',
       color: 'from-cyan-500 to-teal-500',
     },
     {
-      title: 'Website Scraping',
-      description: 'URLs stuck in scraping process',
       icon: Globe,
-      data: data.websiteScraping,
-      href: '/dashboard/stuck-in-website-scraping',
+      title: 'Website Scraping',
+      description: 'Keep track of URLs stuck in the scraping process and maintain data collection efficiency.',
       color: 'from-teal-500 to-green-500',
     },
   ];
 
+  const stats = [
+    { label: 'Pipeline Stages', value: '4', icon: BarChart3 },
+    { label: 'Real-time Updates', value: '24/7', icon: Zap },
+    { label: 'Data Security', value: '100%', icon: Shield },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#3000A5] to-[#00CFFF]">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
-                Data Pipeline Check Dashboard
-              </h1>
-              <p className="text-blue-100 text-lg">
-                Monitor stuck documents across your data processing pipeline
-              </p>
-              {lastUpdated && (
-                <p className="text-blue-200 text-sm mt-2">
-                  Last updated: {lastUpdated.toLocaleString()}
-                </p>
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-[#3000A5] to-[#00CFFF] relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#FFD700] rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#FF00AA] rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative z-10">
+        {/* Header */}
+        <header className="container mx-auto px-4 py-6">
+          <nav className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#FFD700] rounded-lg flex items-center justify-center">
+                <Database className="h-6 w-6 text-[#3000A5]" />
+              </div>
+              <span className="text-2xl font-bold text-white">DataFlow Monitor</span>
             </div>
-            <Button
-              onClick={fetchData}
-              disabled={loading}
-              className="bg-[#FFD700] hover:bg-[#FFD700]/90 text-[#3000A5] font-semibold px-6 py-2 transition-all duration-200 hover:scale-105"
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </Button>
+            <Link href="/dashboard">
+              <Button className="bg-[#FFD700] hover:bg-[#FFD700]/90 text-[#3000A5] font-semibold px-6 py-2 transition-all duration-200 hover:scale-105">
+                Access Dashboard
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </nav>
+        </header>
+
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 py-20 text-center">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+              Data Pipeline
+              <span className="block bg-gradient-to-r from-[#FFD700] to-[#FF00AA] bg-clip-text text-transparent">
+                Check Dashboard
+              </span>
+            </h1>
+            <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
+              Monitor stuck documents across your data processing pipeline with real-time insights and comprehensive analytics.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/dashboard">
+                <Button 
+                  size="lg" 
+                  className="bg-[#FF00AA] hover:bg-[#FF00AA]/90 text-white font-semibold px-8 py-4 text-lg transition-all duration-200 hover:scale-105 shadow-2xl"
+                >
+                  Launch Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 font-semibold px-8 py-4 text-lg transition-all duration-200 hover:scale-105"
+              >
+                Learn More
+              </Button>
+            </div>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          {cards.map((card, index) => {
-            const Icon = card.icon;
-            const total = card.data?.total ?? 0;
-            const results = card.data?.results ?? [];
-            
-            return (
-              <Card key={index} className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                <CardHeader className={`pb-3 bg-gradient-to-r ${card.color} text-white rounded-t-lg`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                        <Icon className="h-5 w-5" />
-                        {card.title}
-                      </CardTitle>
-                      <CardDescription className="text-blue-100 text-sm">
-                        {card.description}
-                      </CardDescription>
-                    </div>
-                    <Badge className={`${getStatusColor(total)} border-0 px-3 py-1 text-sm font-bold`}>
-                      {loading ? '...' : total}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {loading ? (
-                    <div className="space-y-2">
-                      {[...Array(3)].map((_, i) => (
-                        <div key={i} className="h-4 bg-gray-200 rounded animate-pulse" />
-                      ))}
-                    </div>
-                  ) : total === 0 ? (
-                    <div className="text-center py-4">
-                      <div className="text-green-600 font-semibold mb-2">✓ All Clear</div>
-                      <p className="text-sm text-gray-500">No stuck documents</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm font-medium text-gray-700">Recent Issues</span>
-                      </div>
-                      {results.slice(0, 3).map((item, idx) => (
-                        <div key={idx} className="border-l-2 border-[#00E0FF] pl-3 py-1">
-                          <div className="text-xs font-mono text-gray-600 truncate">
-                            {item.link_yid}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate" title={item.url}>
-                            {item.url}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {formatDate(item.createdAt)}
-                          </div>
-                        </div>
-                      ))}
-                      {results.length > 3 && (
-                        <p className="text-xs text-gray-500 text-center">
-                          +{results.length - 3} more items
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <div className="mt-4 pt-3 border-t">
-                    <Link href={card.href}>
-                      <Button 
-                        className="w-full bg-[#FF00AA] hover:bg-[#FF00AA]/90 text-white transition-all duration-200 hover:scale-105"
-                        size="sm"
-                      >
-                        View All Details
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <Card className="bg-white/95 backdrop-blur border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-[#3000A5] flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              System Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-blue-50">
-                <div className="text-2xl font-bold text-[#3000A5]">
-                  {loading ? '...' : (data.articleClassifier?.total ?? 0) + (data.generalFileParser?.total ?? 0) + (data.sourceChannelAnalysis?.total ?? 0) + (data.websiteScraping?.total ?? 0)}
-                </div>
-                <div className="text-sm text-gray-600">Total Stuck</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50">
-                <div className="text-2xl font-bold text-green-600">
-                  {loading ? '...' : cards.filter(card => (card.data?.total ?? 0) === 0).length}
-                </div>
-                <div className="text-sm text-gray-600">Healthy Stages</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-orange-50">
-                <div className="text-2xl font-bold text-orange-600">
-                  {loading ? '...' : cards.filter(card => (card.data?.total ?? 0) > 0 && (card.data?.total ?? 0) < 10).length}
-                </div>
-                <div className="text-sm text-gray-600">Warning</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-gradient-to-br from-red-50 to-pink-50">
-                <div className="text-2xl font-bold text-red-600">
-                  {loading ? '...' : cards.filter(card => (card.data?.total ?? 0) >= 10).length}
-                </div>
-                <div className="text-sm text-gray-600">Critical</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </section>
       </div>
     </div>
   );
